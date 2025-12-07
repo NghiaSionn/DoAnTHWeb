@@ -76,4 +76,20 @@ class BorrowRecord {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getById($id) {
+        $sql = "SELECT * FROM borrow_records WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updateStatus($id, $status) {
+        $sql = "UPDATE borrow_records SET status = :status, return_date_actual = CURRENT_DATE WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":status", $status);
+        $stmt->bindParam(":id", $id);
+        return $stmt->execute();
+    }
 }

@@ -75,6 +75,13 @@ $records = $borrowRecordModel->getByUser($_SESSION["user_id"]);
                                 <span class="status-badge <?php echo $statusClass; ?>">
                                     <?php echo $statusText; ?>
                                 </span>
+                                
+                                <?php if ($record['status'] == 'borrowed'): ?>
+                                    <form action="../../controllers/LibraryController.php?action=return" method="POST" style="display:inline-block; margin-left: 10px;">
+                                        <input type="hidden" name="record_id" value="<?php echo $record['id']; ?>">
+                                        <button type="submit" class="btn-return" onclick="return confirm('Bạn có chắc muốn trả cuốn sách này?')">Trả sách</button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -169,6 +176,21 @@ $records = $borrowRecordModel->getByUser($_SESSION["user_id"]);
 .status-overdue {
     background: #f8d7da;
     color: #721c24;
+}
+
+.btn-return {
+    background: #6c757d;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-return:hover {
+    background: #5a6268;
 }
 
 .empty-history {

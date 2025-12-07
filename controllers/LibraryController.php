@@ -109,6 +109,40 @@ class LibraryController {
         header("Location: /DoAnTHWeb/views/books/history.php?borrowed=1&count=" . $successCount);
         exit();
     }
+
+    public function returnBook() {
+        if (!isset($_SESSION["user_id"])) {
+            header("Location: /DoAnTHWeb/views/auth/login.php");
+            exit();
+        }
+
+        $recordId = $_POST['record_id'] ?? null;
+        if (!$recordId) {
+            header("Location: /DoAnTHWeb/views/books/history.php");
+            exit();
+        }
+
+        require_once "../models/BorrowRecord.php";
+        $borrowRecord = new BorrowRecord();
+        $bookModel = new Book();
+
+        $record = $borrowRecord->getById($recordId);
+
+        // Verify ownership and status
+        if ($record && $record['user_id'] == $_SESSION["user_id"] && $record['status'] == 'borrowed') {
+            // 1. Update Status
+            $borrowRecord->updateStatus($recordId, 'returned');
+
+            // 2. Increase Stock
+            $bookModel->increaseStock($record['book_id'], $record['quantity']);
+            
+            header("Location: /DoAnTHWeb/views/books/history.php?returned=1");
+            exit();
+        }
+
+        header("Location: /DoAnTHWeb/views/books/history.php?error=invalid_return");
+        exit();
+    }
 }
 
 $action = $_GET["action"] ?? "";
@@ -122,5 +156,7 @@ if ($action == "add") {
     $controller->removeMultiple();
 } elseif ($action == "borrow" && $_SERVER["REQUEST_METHOD"] == "POST") {
     $controller->borrowBooks();
+} elseif ($action == "return" && $_SERVER["REQUEST_METHOD"] == "POST") {
+    $controller->returnBook();
 }
 

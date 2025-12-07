@@ -102,4 +102,12 @@ class Book {
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    public function increaseStock($id, $amount) {
+        $query = "UPDATE " . $this->table . " SET quantity = quantity + :amount WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":amount", $amount, PDO::PARAM_INT);
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
 }
