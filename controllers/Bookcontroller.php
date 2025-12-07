@@ -11,6 +11,7 @@ class BookController {
         $category = $_POST['category'];
         $year = $_POST['publish_year'];
         $price = $_POST['price'];
+        $quantity = $_POST['quantity'] ?? 0;
 
         $imageName = null;
         if (!empty($_FILES['image']['name'])) {
@@ -18,7 +19,7 @@ class BookController {
             move_uploaded_file($_FILES['image']['tmp_name'], "../assets/uploads/" . $imageName);
         }
 
-        $book->create($title, $category, $author, $year, $price, $imageName);
+        $book->create($title, $category, $author, $year, $price, $imageName, $quantity);
 
         header("Location: ../views/books/list.php");
         exit();
@@ -33,6 +34,7 @@ class BookController {
     $author = $_POST['author'];
     $year = $_POST['publish_year'];
     $price = $_POST['price'];
+    $quantity = $_POST['quantity'] ?? 0;
 
     $imageName = null;
     if (!empty($_FILES['image']['name'])) {
@@ -40,7 +42,7 @@ class BookController {
         move_uploaded_file($_FILES['image']['tmp_name'], "../assets/uploads/" . $imageName);
     }
 
-    $book->update($id, $title, $category, $author, $year, $price, $imageName);
+    $book->update($id, $title, $category, $author, $year, $price, $imageName, $quantity);
 
     header("Location: ../views/books/list.php");
     exit();

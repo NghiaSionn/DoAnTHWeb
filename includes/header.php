@@ -17,8 +17,6 @@ if (session_status() == PHP_SESSION_NONE) {
 <style>
 .header-user {
     position: relative;
-    float: right;
-    margin-left: 50px;
 }
 
 .header-avatar {
@@ -61,12 +59,14 @@ if (session_status() == PHP_SESSION_NONE) {
     border-bottom: 1px solid #eee;
     color: #333;
 }
+
 </style>
 
-<header style="background:#333; color:white; padding:15px;">
-    <div style="max-width: 2100px; margin: 0 auto;">
+<header style="background:#333; color:white; padding:8px 15px;">
+    <div style="max-width: 2100px; margin: 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
                
         <?php if (isset($_SESSION["user_id"])): ?>
+            <a href="/DoAnTHWeb/views/books/library.php" style="color: white; text-decoration: none; padding: 6px 12px; border: 1px solid white; border-radius: 5px; display: inline-block; font-size: 14px;">Kho sách</a>
             <div class="header-user" onclick="toggleMenu()">
                 <img src="/DoAnTHWeb/assets/img/default_avatar.jpg" class="header-avatar" alt="Avatar">               
                 <div class="header-menu" id="userMenu">
@@ -75,6 +75,10 @@ if (session_status() == PHP_SESSION_NONE) {
                     </div>
                     <a href="/DoAnTHWeb/views/auth/logout.php">Đăng xuất</a>
                 </div>
+            </div>
+        <?php else: ?>
+            <div class="header-user">
+                <a href="/DoAnTHWeb/views/auth/login.php" style="color: white; text-decoration: none; padding: 6px 12px; border: 1px solid white; border-radius: 5px; display: inline-block; font-size: 14px;">Đăng nhập</a>
             </div>
         <?php endif; ?>
     </div>
@@ -94,4 +98,5 @@ document.addEventListener('click', function(event) {
         menu.style.display = "none";
     }
 });
+
 </script>

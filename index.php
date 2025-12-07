@@ -10,11 +10,21 @@ require_once "config/database.php";
 $db = new Database();
 $conn = $db->connect();
 
+// Lọc theo category nếu có tham số category trong URL
+$category = $_GET['category'] ?? null;
 
-$sql = "SELECT * FROM books ORDER BY id ASC"; 
-$stmt = $conn->prepare($sql);
-$stmt->execute();
-$books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if ($category) {
+    $sql = "SELECT * FROM books WHERE category = :category ORDER BY id ASC"; 
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(":category", $category);
+    $stmt->execute();
+    $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $sql = "SELECT * FROM books ORDER BY id ASC"; 
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 
 <h2 style="text-align:center; margin-top:30px; color:#333;">THƯ VIỆN</h2>
@@ -44,6 +54,7 @@ body {
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
+    display: block;
 }
 
 .book-card:hover {
@@ -107,27 +118,29 @@ body {
 <div class="book-container">
     <?php if (count($books) > 0): ?>
         <?php foreach ($books as $book): ?>
-            <div class="book-card">
-                <div class="book-image-wrapper">
-                    <?php if (!empty($book['image'])): ?>
-                        <img src="assets/uploads/<?php echo htmlspecialchars($book['image']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?>">
-                    <?php else: ?>
-                        <img src="https://via.placeholder.com/220x280/cccccc/666666?text=No+Image" alt="No image">
-                    <?php endif; ?>
-                </div>
+            <a href="views/books/detail.php?id=<?php echo $book['id']; ?>" style="text-decoration: none; color: inherit;">
+                <div class="book-card">
+                    <div class="book-image-wrapper">
+                        <?php if (!empty($book['image'])): ?>
+                            <img src="assets/uploads/<?php echo htmlspecialchars($book['image']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?>">
+                        <?php else: ?>
+                            <img src="https://via.placeholder.com/220x280/cccccc/666666?text=No+Image" alt="No image">
+                        <?php endif; ?>
+                    </div>
 
-                <div class="book-title">
-                    <?php echo htmlspecialchars($book['title']); ?>
-                </div>
+                    <div class="book-title">
+                        <?php echo htmlspecialchars($book['title']); ?>
+                    </div>
 
-                <div class="book-author">
-                    <?php echo htmlspecialchars($book['author']); ?>
-                </div>
+                    <div class="book-author">
+                        <?php echo htmlspecialchars($book['author']); ?>
+                    </div>
 
-                <div class="book-price">
-                    <?php echo number_format($book['price'], 0, ',', '.'); ?> đ
+                    <div class="book-price">
+                        <?php echo number_format($book['price'], 0, ',', '.'); ?> đ
+                    </div>
                 </div>
-            </div>
+            </a>
         <?php endforeach; ?>
     <?php else: ?>
         <div class="no-books">

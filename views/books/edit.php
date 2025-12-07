@@ -47,6 +47,9 @@ if (!$book) {
     <label>Giá:</label>
     <input type="number" name="price" class="input" value="<?= $book['price'] ?>"><br><br>
 
+    <label>Số lượng:</label>
+    <input type="number" name="quantity" class="input" value="<?= isset($book['quantity']) ? $book['quantity'] : 0 ?>" min="0"><br><br>
+
     <label>Ảnh bìa:</label>
     <?php if(!empty($book['image'])): ?>
         <img src="../../assets/uploads/<?= $book['image'] ?>" width="80"><br>

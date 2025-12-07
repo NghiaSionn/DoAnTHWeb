@@ -20,9 +20,9 @@ class Book {
     }
 
     //tạo
-    public function create($title, $category, $author, $year, $price, $image) {
-    $sql = "INSERT INTO books (title, category, author, publish_year, price, image) 
-            VALUES (:title, :category, :author, :year, :price, :image)";
+    public function create($title, $category, $author, $year, $price, $image, $quantity = 0) {
+    $sql = "INSERT INTO books (title, category, author, publish_year, price, image, quantity) 
+            VALUES (:title, :category, :author, :year, :price, :image, :quantity)";
     $stmt = $this->conn->prepare($sql);
 
     $stmt->bindParam(":title", $title);
@@ -31,6 +31,7 @@ class Book {
     $stmt->bindParam(":year", $year);
     $stmt->bindParam(":price", $price);
     $stmt->bindParam(":image", $image);
+    $stmt->bindParam(":quantity", $quantity);
 
     return $stmt->execute();   
     }
@@ -43,11 +44,11 @@ class Book {
     return $stmt;
     }
 
-    public function update($id, $title, $category, $author, $year, $price, $image=null) {
+    public function update($id, $title, $category, $author, $year, $price, $image=null, $quantity=0) {
     if($image) {
-        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, price=:price, image=:image WHERE id=:id";
+        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, price=:price, image=:image, quantity=:quantity WHERE id=:id";
     } else {
-        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, price=:price WHERE id=:id";
+        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, price=:price, quantity=:quantity WHERE id=:id";
     }
     
     $stmt = $this->conn->prepare($sql);
@@ -57,6 +58,7 @@ class Book {
     $stmt->bindParam(":author", $author);
     $stmt->bindParam(":year", $year);
     $stmt->bindParam(":price", $price);
+    $stmt->bindParam(":quantity", $quantity);
     $stmt->bindParam(":id", $id);
 
     if($image) {

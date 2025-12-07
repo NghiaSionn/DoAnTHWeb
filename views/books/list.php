@@ -35,6 +35,7 @@ $totalPages = ceil($totalBooks / $limit);
         <th>Tác giả</th>
         <th>Năm XB</th>
         <th>Giá</th>
+        <th>Số lượng</th>
         <th>Ảnh</th>
         <th>Hành động</th>
     </tr>
@@ -47,6 +48,7 @@ $totalPages = ceil($totalBooks / $limit);
         <td><?= $row["author"]; ?></td>
         <td><?= $row["publish_year"]; ?></td>
         <td><?= number_format($row["price"], 0, ',', '.') ?>đ</td>
+        <td><?= isset($row["quantity"]) ? $row["quantity"] : 0; ?></td>
         <td>
             <?php if (!empty($row["image"])) { ?>
                 <img src="../../assets/uploads/<?= $row["image"]; ?>" width="60">
