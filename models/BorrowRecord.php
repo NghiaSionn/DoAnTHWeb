@@ -65,4 +65,15 @@ class BorrowRecord {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getAllRecords() {
+        $sql = "SELECT br.*, b.title, b.image, u.username, u.email 
+                FROM borrow_records br
+                JOIN books b ON br.book_id = b.id
+                JOIN users u ON br.user_id = u.id
+                ORDER BY br.borrow_date DESC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

@@ -40,7 +40,7 @@ $categories = $categoryStmt->fetchAll(PDO::FETCH_COLUMN);
 
             <div class="admin-dropdown" id="adminDropdown">
                 <a href="/DoAnTHWeb/views/books/list.php">Quản lý sách</a>
-                <a href="/DoAnTHWeb/views/books/history.php">Lịch sử mượn trả</a>
+                <a href="/DoAnTHWeb/views/admin/borrow_management.php">Quản lý mượn trả</a>
             </div>
         </div>
 
