@@ -30,26 +30,65 @@ class Library {
         }
     }
 
-    public function addToLibrary($userId, $bookId) {
-        $sql = "INSERT INTO user_library (user_id, book_id) 
-                VALUES (:user_id, :book_id)
-                ON DUPLICATE KEY UPDATE added_at = CURRENT_TIMESTAMP";
+    public function isInLibrary($userId, $bookId) {
+        $sql = "SELECT COUNT(*) as count FROM user_library 
+                WHERE user_id = :user_id AND book_id = :book_id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(":user_id", $userId);
         $stmt->bindParam(":book_id", $bookId);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] > 0;
+    }
+
+    public function addToLibrary($userId, $bookId, $quantity = 1) {
+        // Migration check for quantity column
+        $this->checkAndAddQuantityColumn();
+        
+        $sql = "INSERT INTO user_library (user_id, book_id, quantity) 
+                VALUES (:user_id, :book_id, :quantity)
+                ON DUPLICATE KEY UPDATE 
+                quantity = quantity + :quantity,
+                added_at = CURRENT_TIMESTAMP";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":user_id", $userId);
+        $stmt->bindParam(":book_id", $bookId);
+        $stmt->bindParam(":quantity", $quantity);
         return $stmt->execute();
     }
 
-    public function removeFromLibrary($userId, $bookId) {
-        $sql = "DELETE FROM user_library WHERE user_id = :user_id AND book_id = :book_id";
+    public function decreaseQuantity($userId, $bookId, $amount) {
+        $sql = "UPDATE user_library SET quantity = quantity - :amount 
+                WHERE user_id = :user_id AND book_id = :book_id";
         $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":amount", $amount, PDO::PARAM_INT);
         $stmt->bindParam(":user_id", $userId);
         $stmt->bindParam(":book_id", $bookId);
-        return $stmt->execute();
+        
+        if ($stmt->execute()) {
+            // Delete if quantity <= 0
+            $checkSql = "DELETE FROM user_library WHERE user_id = :user_id AND book_id = :book_id AND quantity <= 0";
+            $checkStmt = $this->conn->prepare($checkSql);
+            $checkStmt->bindParam(":user_id", $userId);
+            $checkStmt->bindParam(":book_id", $bookId);
+            $checkStmt->execute();
+            return true;
+        }
+        return false;
+    }
+
+    public function removeMultipleFromLibrary($userId, $bookIds) {
+        if (empty($bookIds)) return false;
+        $placeholders = implode(',', array_fill(0, count($bookIds), '?'));
+        $sql = "DELETE FROM user_library WHERE user_id = ? AND book_id IN ($placeholders)";
+        $stmt = $this->conn->prepare($sql);
+        $params = array_merge([$userId], $bookIds);
+        return $stmt->execute($params);
     }
 
     public function getUserLibrary($userId) {
-        $sql = "SELECT b.*, ul.added_at 
+        $this->checkAndAddQuantityColumn();
+        $sql = "SELECT b.*, ul.added_at, ul.quantity as user_quantity 
                 FROM user_library ul
                 INNER JOIN books b ON ul.book_id = b.id
                 WHERE ul.user_id = :user_id
@@ -60,15 +99,16 @@ class Library {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function isInLibrary($userId, $bookId) {
-        $sql = "SELECT COUNT(*) as count FROM user_library 
-                WHERE user_id = :user_id AND book_id = :book_id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(":user_id", $userId);
-        $stmt->bindParam(":book_id", $bookId);
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['count'] > 0;
+    private function checkAndAddQuantityColumn() {
+        try {
+            $checkSql = "SHOW COLUMNS FROM user_library LIKE 'quantity'";
+            $stmt = $this->conn->prepare($checkSql);
+            $stmt->execute();
+            if ($stmt->rowCount() == 0) {
+                $alterSql = "ALTER TABLE user_library ADD COLUMN quantity INT DEFAULT 1 AFTER book_id";
+                $this->conn->exec($alterSql);
+            }
+        } catch (Exception $e) {}
     }
 }
 

@@ -279,7 +279,10 @@ body {
 <div class="library-container">
     <div class="library-header">
         <h2 class="library-title">Kho sách của tôi</h2>
-        <button class="btn-borrow-selected" id="btnBorrowSelected">Mượn sách</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-borrow-selected" id="btnDeleteSelected" style="background: #dc3545;">Xóa đã chọn</button>
+            <button class="btn-borrow-selected" id="btnBorrowSelected">Mượn sách</button>
+        </div>
     </div>
 
     <?php if (count($userBooks) > 0): ?>
@@ -338,25 +341,32 @@ body {
 <div id="borrowModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">Xác nhận mượn sách</div>
-        <div class="modal-body">
-            <p>Bạn có chắc chắn muốn mượn các sách đã chọn không?</p>
-            
-            <div class="duration-select-wrapper">
-                <div class="duration-select-btn" id="durationSelectBtn" onclick="toggleDurationDropdown()">
-                    <span id="durationSelectText">3 ngày</span>
+        
+        <form id="modalBorrowForm" action="../../controllers/LibraryController.php?action=borrow" method="POST">
+            <div class="modal-body">
+                <p>Vui lòng chọn số lượng cho từng sách:</p>
+                <div id="selectedBooksList" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #eee; padding: 10px;">
+                    <!-- JS populate here -->
                 </div>
-                <div class="duration-dropdown" id="durationDropdown">
-                    <div class="duration-option selected" data-value="3" onclick="selectDuration(3, '3 ngày', this)">3 ngày</div>
-                    <div class="duration-option" data-value="7" onclick="selectDuration(7, '7 ngày', this)">7 ngày</div>
-                    <div class="duration-option" data-value="14" onclick="selectDuration(14, '14 ngày', this)">14 ngày</div>
+                
+                <p style="margin-bottom: 10px;">Thời gian mượn:</p>
+                <div class="duration-select-wrapper">
+                    <div class="duration-select-btn" id="durationSelectBtn" onclick="toggleDurationDropdown()">
+                        <span id="durationSelectText">7 ngày</span>
+                    </div>
+                    <div class="duration-dropdown" id="durationDropdown">
+                        <div class="duration-option" data-value="3" onclick="selectDuration(3, '3 ngày', this)">3 ngày</div>
+                        <div class="duration-option selected" data-value="7" onclick="selectDuration(7, '7 ngày', this)">7 ngày</div>
+                        <div class="duration-option" data-value="14" onclick="selectDuration(14, '14 ngày', this)">14 ngày</div>
+                    </div>
                 </div>
+                <input type="hidden" name="borrow_duration" id="borrowDurationHidden" value="7">
             </div>
-            <input type="hidden" name="borrow_duration" id="borrowDurationHidden" value="3">
-        </div>
-        <div class="modal-buttons">
-            <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
-            <button type="button" class="btn-confirm" onclick="confirmBorrow()">Xác nhận mượn sách</button>
-        </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+                <button type="submit" class="btn-confirm">Xác nhận mượn</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -365,29 +375,72 @@ body {
 document.getElementById('selectAll').addEventListener('change', function() {
     const checkboxes = document.querySelectorAll('.book-select');
     checkboxes.forEach(cb => cb.checked = this.checked);
-    updateBorrowButton();
+    updateButtons();
 });
 
-// Cập nhật nút mượn sách
+// Cập nhật nút mượn sách và xóa
 document.querySelectorAll('.book-select').forEach(checkbox => {
-    checkbox.addEventListener('change', updateBorrowButton);
+    checkbox.addEventListener('change', updateButtons);
 });
 
-function updateBorrowButton() {
+function updateButtons() {
     const selected = document.querySelectorAll('.book-select:checked');
-    const btn = document.getElementById('btnBorrowSelected');
+    const btnBorrow = document.getElementById('btnBorrowSelected');
+    const btnDelete = document.getElementById('btnDeleteSelected');
+    
     if (selected.length > 0) {
-        btn.classList.add('show');
-        btn.textContent = `Mượn sách (${selected.length})`;
+        btnBorrow.classList.add('show');
+        btnBorrow.textContent = `Mượn sách (${selected.length})`;
+        btnDelete.classList.add('show');
+        btnDelete.textContent = `Xóa (${selected.length})`;
     } else {
-        btn.classList.remove('show');
+        btnBorrow.classList.remove('show');
+        btnDelete.classList.remove('show');
     }
 }
+
+// Xử lý sự kiện nút xóa
+document.getElementById('btnDeleteSelected').addEventListener('click', function() {
+    if (confirm('Bạn có chắc chắn muốn xóa các sách đã chọn khỏi kho?')) {
+        const form = document.getElementById('borrowForm');
+        form.action = "../../controllers/LibraryController.php?action=remove_multiple";
+        form.submit();
+    }
+});
 
 // Hiển thị modal khi click nút mượn sách
 document.getElementById('btnBorrowSelected').addEventListener('click', function() {
     const selected = document.querySelectorAll('.book-select:checked');
     if (selected.length > 0) {
+        const container = document.getElementById('selectedBooksList');
+        container.innerHTML = '';
+
+        selected.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const title = row.querySelector('.book-title').textContent;
+            const bookId = checkbox.value;
+            // Get max quantity from the cell. Assuming the cell content is just the number.
+            // If it has HTML, we might need to be specific. The PHP outputs pure number or text.
+            const maxQtyText = row.querySelector('.book-quantity').textContent.trim();
+            const maxQty = parseInt(maxQtyText) || 1;
+
+            const div = document.createElement('div');
+            div.style.borderBottom = '1px solid #eee';
+            div.style.padding = '10px 0';
+            div.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">${title}</div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 13px; color: #666;">Trong kho: ${maxQty}</span>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span>SL:</span>
+                        <input type="number" name="quantities[${bookId}]" value="1" min="1" max="${maxQty}" style="width: 50px; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                        <input type="hidden" name="selected_books[]" value="${bookId}">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
         document.getElementById('borrowModal').style.display = 'block';
     }
 });
@@ -402,37 +455,21 @@ function toggleDurationDropdown() {
 }
 
 function selectDuration(value, text, element) {
-    // Cập nhật text hiển thị
     document.getElementById('durationSelectText').textContent = text;
     document.getElementById('borrowDurationHidden').value = value;
     
-    // Cập nhật selected class
     document.querySelectorAll('.duration-option').forEach(option => {
         option.classList.remove('selected');
     });
-    if (element) {
-        element.classList.add('selected');
-    }
+    if (element) element.classList.add('selected');
     
-    // Đóng dropdown
     document.getElementById('durationDropdown').classList.remove('show');
 }
 
-function confirmBorrow() {
-    // Lấy giá trị thời gian mượn đã chọn
-    const selectedDuration = document.getElementById('borrowDurationHidden').value;
-    document.getElementById('borrowDurationInput').value = selectedDuration;
-    document.getElementById('borrowForm').submit();
-}
-
-// Đóng modal khi click bên ngoài
 window.onclick = function(event) {
     const modal = document.getElementById('borrowModal');
-    if (event.target == modal) {
-        closeModal();
-    }
+    if (event.target == modal) closeModal();
     
-    // Đóng dropdown khi click bên ngoài
     const dropdown = document.getElementById('durationDropdown');
     const selectBtn = document.getElementById('durationSelectBtn');
     if (dropdown && !dropdown.contains(event.target) && !selectBtn.contains(event.target)) {

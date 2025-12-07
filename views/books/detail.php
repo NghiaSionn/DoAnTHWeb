@@ -178,6 +178,114 @@ body {
 .btn-add-to-library:hover {
     background: #dee2e6;
 }
+
+/* Modal Styles */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); 
+    background-color: rgba(0,0,0,0.5); 
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    position: relative;
+    animation: animatetop 0.4s;
+}
+
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.quantity-input-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    background: #eee;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.quantity-btn:hover {
+    background: #e2e6ea;
+}
+
+.quantity-input {
+    width: 60px;
+    height: 30px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Hide arrow for number input */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.btn-confirm-add {
+    background: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-confirm-add:hover {
+    background: #218838;
+}
 </style>
 
 <div class="book-detail-container">
@@ -219,14 +327,13 @@ body {
                 Số lượng còn lại: <span class="quantity-value"><?php echo isset($book['quantity']) ? $book['quantity'] : 0; ?></span>
             </div>
 
-            <div class="book-buttons">
-                <a href="#" class="btn-borrow">Mượn</a>
+    <div class="book-buttons">
+                <!-- Nút Mượn: Mở modal mượn ngay -->
+                <button onclick="openQuickBorrowModal()" class="btn-borrow">Mượn</button>
+                
                 <?php if (isset($_SESSION["user_id"])): ?>
-                    <?php if ($isInLibrary): ?>
-                        <span style="padding: 15px 40px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">Đã có trong kho sách</span>
-                    <?php else: ?>
-                        <a href="../../controllers/LibraryController.php?action=add&book_id=<?php echo $book['id']; ?>" class="btn-add-to-library">Thêm vào kho sách</a>
-                    <?php endif; ?>
+                    <!-- Nút thêm vào kho: Mở modal số lượng -->
+                    <button onclick="openAddToLibraryModal()" class="btn-add-to-library">Thêm vào kho sách</button>
                 <?php else: ?>
                     <a href="/DoAnTHWeb/views/auth/login.php" class="btn-add-to-library">Thêm vào kho sách</a>
                 <?php endif; ?>
@@ -237,6 +344,104 @@ body {
                     ✓ Đã thêm sách vào kho sách thành công!
                 </div>
             <?php endif; ?>
+
+            <!-- Add to Library Modal -->
+            <div id="addToLibraryModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="closeAddToLibraryModal()">&times;</span>
+                    <div class="modal-header">Thêm vào kho sách</div>
+                    <form action="../../controllers/LibraryController.php?action=add" method="POST">
+                        <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
+                        
+                        <p style="text-align: center;">Nhập số lượng:</p>
+                        <div class="quantity-input-group">
+                            <button type="button" class="quantity-btn" onclick="decreaseAddQty()">-</button>
+                            <input type="number" name="quantity" id="addQtyInput" class="quantity-input" value="1" min="1" max="<?php echo $book['quantity']; ?>">
+                            <button type="button" class="quantity-btn" onclick="increaseAddQty()">+</button>
+                        </div>
+                        
+                        <button type="submit" class="btn-confirm-add" style="width:100%; margin-top:10px;">Xác nhận thêm</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Borrow Modal -->
+            <div id="quickBorrowModal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="closeQuickBorrowModal()">&times;</span>
+                    <div class="modal-header">Mượn sách</div>
+                    <!-- Note: Sử dụng action borrow giống như trong kho sách, nhưng đây là mượn trực tiếp 1 cuốn -->
+                    <!-- Để đơn giản, ta có thể route nó qua action borrow giống logic cũ hoặc quick_borrow nếu muốn tách biệt. -->
+                    <!-- Nhưng user yêu cầu logic giống nhau: "nút mượn nữa khi ấn vào củng hiện form nhập số lượng và sau đó chọn thời gian... ấn xác nhận là xong" -->
+                    <!-- Ta sẽ dùng form submit đến borrowBooks nhưng cần cấu trúc data giống với việc select từ library -->
+                    <form action="../../controllers/LibraryController.php?action=borrow" method="POST">
+                        <input type="hidden" name="selected_books[]" value="<?php echo $book['id']; ?>">
+                        
+                        <p style="text-align: center;">Số lượng:</p>
+                        <div class="quantity-input-group">
+                            <button type="button" class="quantity-btn" onclick="decreaseBorrowQty()">-</button>
+                            <input type="number" name="quantities[<?php echo $book['id']; ?>]" id="borrowQtyInput" class="quantity-input" value="1" min="1" max="<?php echo $book['quantity']; ?>">
+                            <button type="button" class="quantity-btn" onclick="increaseBorrowQty()">+</button>
+                        </div>
+                        
+                        <p style="margin-top: 15px;">Chọn thời gian mượn:</p>
+                        <select name="borrow_duration" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc;">
+                            <option value="3">3 ngày</option>
+                            <option value="7" selected>7 ngày</option>
+                            <option value="14">14 ngày</option>
+                        </select>
+
+                        <button type="submit" class="btn-confirm-add" style="width:100%; margin-top:20px;">Xác nhận mượn</button>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+            function openAddToLibraryModal() {
+                document.getElementById('addToLibraryModal').style.display = 'block';
+            }
+            function closeAddToLibraryModal() {
+                document.getElementById('addToLibraryModal').style.display = 'none';
+            }
+            
+            function openQuickBorrowModal() {
+                document.getElementById('quickBorrowModal').style.display = 'block';
+            }
+            function closeQuickBorrowModal() {
+                document.getElementById('quickBorrowModal').style.display = 'none';
+            }
+
+            function increaseAddQty() {
+                var input = document.getElementById('addQtyInput');
+                var max = parseInt(input.getAttribute('max'));
+                var val = parseInt(input.value);
+                if (val < max) input.value = val + 1;
+            }
+            function decreaseAddQty() {
+                var input = document.getElementById('addQtyInput');
+                var val = parseInt(input.value);
+                if (val > 1) input.value = val - 1;
+            }
+
+             function increaseBorrowQty() {
+                var input = document.getElementById('borrowQtyInput');
+                var max = parseInt(input.getAttribute('max'));
+                var val = parseInt(input.value);
+                if (val < max) input.value = val + 1;
+            }
+            function decreaseBorrowQty() {
+                var input = document.getElementById('borrowQtyInput');
+                var val = parseInt(input.value);
+                if (val > 1) input.value = val - 1;
+            }
+
+            window.onclick = function(event) {
+                var m1 = document.getElementById('addToLibraryModal');
+                var m2 = document.getElementById('quickBorrowModal');
+                if (event.target == m1) m1.style.display = "none";
+                if (event.target == m2) m2.style.display = "none";
+            }
+            </script>
         </div>
     </div>
 </div>

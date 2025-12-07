@@ -29,6 +29,10 @@ $categories = $categoryStmt->fetchAll(PDO::FETCH_COLUMN);
         </div>
     </div>
 
+    <?php if (isset($_SESSION["user_id"])): ?>
+        <a href="/DoAnTHWeb/views/books/history.php" style="color:white; text-decoration: none;">Lịch sử mượn sách</a>
+    <?php endif; ?>
+
     <?php if (isset($_SESSION["role"]) && $_SESSION["role"] === "admin"): ?>
 
         <div class="admin-menu" id="adminMenuBtn">

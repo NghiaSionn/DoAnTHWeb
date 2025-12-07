@@ -94,4 +94,12 @@ class Book {
         $stmt = $this->conn->query($sql);
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
+
+    public function decreaseStock($id, $amount) {
+        $query = "UPDATE " . $this->table . " SET quantity = quantity - :amount WHERE id = :id AND quantity >= :amount";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":amount", $amount, PDO::PARAM_INT);
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
 }
