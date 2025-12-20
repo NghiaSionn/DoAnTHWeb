@@ -20,16 +20,15 @@ class Book {
     }
 
     //tạo
-    public function create($title, $category, $author, $year, $price, $image, $quantity = 0) {
-    $sql = "INSERT INTO books (title, category, author, publish_year, price, image, quantity) 
-            VALUES (:title, :category, :author, :year, :price, :image, :quantity)";
+    public function create($title, $category, $author, $year, $image, $quantity = 0) {
+    $sql = "INSERT INTO books (title, category, author, publish_year, image, quantity) 
+            VALUES (:title, :category, :author, :year, :image, :quantity)";
     $stmt = $this->conn->prepare($sql);
 
     $stmt->bindParam(":title", $title);
     $stmt->bindParam(":category", $category);
     $stmt->bindParam(":author", $author);
     $stmt->bindParam(":year", $year);
-    $stmt->bindParam(":price", $price);
     $stmt->bindParam(":image", $image);
     $stmt->bindParam(":quantity", $quantity);
 
@@ -44,11 +43,11 @@ class Book {
     return $stmt;
     }
 
-    public function update($id, $title, $category, $author, $year, $price, $image=null, $quantity=0) {
+    public function update($id, $title, $category, $author, $year, $image=null, $quantity=0) {
     if($image) {
-        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, price=:price, image=:image, quantity=:quantity WHERE id=:id";
+        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, image=:image, quantity=:quantity WHERE id=:id";
     } else {
-        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, price=:price, quantity=:quantity WHERE id=:id";
+        $sql = "UPDATE books SET title=:title, category=:category, author=:author, publish_year=:year, quantity=:quantity WHERE id=:id";
     }
     
     $stmt = $this->conn->prepare($sql);
@@ -57,7 +56,6 @@ class Book {
     $stmt->bindParam(":category", $category);
     $stmt->bindParam(":author", $author);
     $stmt->bindParam(":year", $year);
-    $stmt->bindParam(":price", $price);
     $stmt->bindParam(":quantity", $quantity);
     $stmt->bindParam(":id", $id);
 

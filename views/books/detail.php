@@ -119,7 +119,7 @@ body {
     color: #333;
 }
 
-.book-price {
+
     font-size: 28px;
     color: #e60000;
     font-weight: bold;
@@ -319,9 +319,7 @@ body {
                 <span class="book-info-value"><?php echo $book['publish_year'] ?? 'Chưa có thông tin'; ?></span>
             </div>
 
-            <div class="book-price">
-                <?php echo number_format($book['price'], 0, ',', '.'); ?> đ
-            </div>
+
 
             <div class="book-quantity">
                 Số lượng còn lại: <span class="quantity-value"><?php echo isset($book['quantity']) ? $book['quantity'] : 0; ?></span>

@@ -100,7 +100,7 @@ body {
     margin-bottom: 8px;
 }
 
-.book-price {
+
     color: #e60000;
     margin-top: 10px;
     font-weight: bold;
@@ -136,9 +136,7 @@ body {
                         <?php echo htmlspecialchars($book['author']); ?>
                     </div>
 
-                    <div class="book-price">
-                        <?php echo number_format($book['price'], 0, ',', '.'); ?> đ
-                    </div>
+
                 </div>
             </a>
         <?php endforeach; ?>

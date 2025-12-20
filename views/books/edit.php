@@ -44,9 +44,6 @@ if (!$book) {
     <label>Năm xuất bản:</label>
     <input type="number" name="publish_year" class="input" value="<?= $book['publish_year'] ?>"><br><br>
 
-    <label>Giá:</label>
-    <input type="number" name="price" class="input" value="<?= $book['price'] ?>"><br><br>
-
     <label>Số lượng:</label>
     <input type="number" name="quantity" class="input" value="<?= isset($book['quantity']) ? $book['quantity'] : 0 ?>" min="0"><br><br>
 

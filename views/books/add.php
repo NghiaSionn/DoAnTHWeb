@@ -27,9 +27,6 @@ include "../../includes/navbar.php";
     <label>Năm xuất bản:</label>
     <input type="number" name="publish_year" class="input"><br><br>
 
-    <label>Giá:</label>
-    <input type="number" name="price" class="input"><br><br>
-
     <label>Ảnh bìa:</label>
     <input type="file" name="image"><br><br>
 
